@@ -23,39 +23,94 @@ if ($from > $to) {
 }
 
 if ($type === 'activity') {
+$agentFilter = '';
+$params = [
+    ':from_date' => $from,
+    ':to_date' => $to,
+];
+if ($agentId !== '') {
+    $agentFilter = ' AND u.agent_id ILIKE :agent_id ';
+    $params[':agent_id'] = '%' . $agentId . '%';
+}
+
 $sql = "
-WITH sessions AS (
+WITH dates AS (
+    SELECT generated_date::date AS report_date
+      FROM generate_series(CAST(:from_date AS timestamp), CAST(:to_date AS timestamp), INTERVAL '1 day') AS date_series(generated_date)
+),
+date_ranges AS (
+    SELECT report_date,
+           report_date::timestamp AT TIME ZONE 'Asia/Kolkata' AS day_start,
+           (report_date + 1)::timestamp AT TIME ZONE 'Asia/Kolkata' AS day_end
+      FROM dates
+),
+agents AS (
+    SELECT u.id, u.agent_id, u.full_name, u.lob
+      FROM users u
+     WHERE u.role = 'agent'
+       $agentFilter
+),
+sessions AS (
     SELECT s.id,
            s.user_id,
            s.login_at,
-           COALESCE(s.logout_at, s.last_seen) AS effective_logout,
-           GREATEST(0, EXTRACT(EPOCH FROM (COALESCE(s.logout_at, s.last_seen) - s.login_at)))::bigint AS login_seconds
+           COALESCE(s.logout_at, s.last_seen) AS effective_logout
       FROM agent_sessions s
-     WHERE s.login_at >= CAST(:from_date AS date)
-       AND s.login_at < (CAST(:to_date AS date) + INTERVAL '1 day')
+      JOIN agents a ON a.id = s.user_id
 ),
-activity AS (
-    SELECT al.user_id,
-           SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout) - al.start_time))))
-               FILTER (WHERE al.activity_type='IDLE') AS idle_seconds,
-           SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout) - al.start_time))))
-               FILTER (WHERE al.activity_type='PAUSE') AS pause_seconds
+session_days AS (
+    SELECT a.id AS user_id,
+           d.report_date,
+           COUNT(s.id)::int AS session_count,
+           COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (
+               LEAST(s.effective_logout, d.day_end) - GREATEST(s.login_at, d.day_start)
+           )))), 0)::bigint AS login_seconds
+      FROM agents a
+      CROSS JOIN date_ranges d
+      LEFT JOIN sessions s
+        ON s.user_id = a.id
+       AND s.login_at < d.day_end
+       AND s.effective_logout > d.day_start
+     GROUP BY a.id, d.report_date
+),
+activity_days AS (
+    SELECT s.user_id,
+           d.report_date,
+           COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (
+               LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout, d.day_end)
+               - GREATEST(al.start_time, s.login_at, d.day_start)
+           )))) FILTER (WHERE al.activity_type = 'IDLE'), 0)::bigint AS idle_seconds,
+           COALESCE(SUM(GREATEST(0, EXTRACT(EPOCH FROM (
+               LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout, d.day_end)
+               - GREATEST(al.start_time, s.login_at, d.day_start)
+           )))) FILTER (WHERE al.activity_type = 'PAUSE'), 0)::bigint AS pause_seconds
       FROM activity_log al
       JOIN sessions s ON s.id = al.session_id
-     GROUP BY al.user_id
+      JOIN date_ranges d
+        ON al.start_time < d.day_end
+       AND LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout) > d.day_start
+     GROUP BY s.user_id, d.report_date
 ),
 pause_totals AS (
-    SELECT al.user_id,
+    SELECT s.user_id,
+           d.report_date,
            COALESCE(pc.code_name,'Unknown') AS code_name,
-           SUM(GREATEST(0, EXTRACT(EPOCH FROM (LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout) - al.start_time))))::bigint AS seconds
+           SUM(GREATEST(0, EXTRACT(EPOCH FROM (
+               LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout, d.day_end)
+               - GREATEST(al.start_time, s.login_at, d.day_start)
+           ))))::bigint AS seconds
       FROM activity_log al
       JOIN sessions s ON s.id = al.session_id
+      JOIN date_ranges d
+        ON al.start_time < d.day_end
+       AND LEAST(COALESCE(al.end_time, s.effective_logout), s.effective_logout) > d.day_start
       LEFT JOIN pause_codes pc ON pc.id = al.pause_code_id
      WHERE al.activity_type='PAUSE'
-     GROUP BY al.user_id, COALESCE(pc.code_name,'Unknown')
+     GROUP BY s.user_id, d.report_date, COALESCE(pc.code_name,'Unknown')
 ),
 pause_detail AS (
     SELECT user_id,
+           report_date,
            STRING_AGG(
                code_name || ': ' ||
                LPAD((seconds / 3600)::text, 2, '0') || ':' ||
@@ -64,36 +119,25 @@ pause_detail AS (
                ' | ' ORDER BY code_name
            ) AS pause_breakdown
       FROM pause_totals
-     GROUP BY user_id
+     GROUP BY user_id, report_date
 )
-SELECT u.agent_id,
+SELECT sd.report_date,
+       u.agent_id,
        u.full_name,
        u.lob,
-       COUNT(s.id)::int AS session_count,
-       COALESCE(SUM(s.login_seconds),0)::bigint AS login_seconds,
+       sd.session_count,
+       sd.login_seconds,
        COALESCE(a.idle_seconds,0)::bigint AS idle_seconds,
        COALESCE(a.pause_seconds,0)::bigint AS pause_seconds,
        COALESCE(pd.pause_breakdown,'') AS pause_breakdown
-  FROM users u
-  LEFT JOIN sessions s ON s.user_id=u.id
-  LEFT JOIN activity a ON a.user_id=u.id
-  LEFT JOIN pause_detail pd ON pd.user_id=u.id
- WHERE u.role='agent'
-";
-
-$params = [
-    ':from_date' => $from,
-    ':to_date' => $to,
-];
-
-if ($agentId !== '') {
-    $sql .= " AND u.agent_id ILIKE :agent_id ";
-    $params[':agent_id'] = '%' . $agentId . '%';
-}
-
-$sql .= "
- GROUP BY u.id, u.agent_id, u.full_name, a.idle_seconds, a.pause_seconds, pd.pause_breakdown
- ORDER BY u.agent_id
+  FROM session_days sd
+  JOIN agents u ON u.id = sd.user_id
+  LEFT JOIN activity_days a
+    ON a.user_id = sd.user_id AND a.report_date = sd.report_date
+  LEFT JOIN pause_detail pd
+    ON pd.user_id = sd.user_id AND pd.report_date = sd.report_date
+ WHERE sd.session_count > 0
+ ORDER BY sd.report_date, u.agent_id
 ";
 
 $stmt = $pdo->prepare($sql);
@@ -105,10 +149,11 @@ if (($_GET['export'] ?? '') === 'csv') {
     header('Content-Disposition: attachment; filename="agent_activity_report_'.$from.'_to_'.$to.'.csv"');
 
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Agent ID','Name','Current assigned LOB','Sessions','Login Duration','Idle Duration','Break Duration','Pause Breakdown']);
+    fputcsv($out, ['Date','Agent ID','Name','Current assigned LOB','Sessions','Login Duration','Idle Duration','Break Duration','Pause Breakdown']);
 
     foreach ($rows as $r) {
         fputcsv($out, [
+            $r['report_date'],
             $r['agent_id'],
             $r['full_name'],
             $r['lob'] ?? 'Unassigned',
@@ -170,7 +215,7 @@ if (($_GET['export'] ?? '') === 'csv') {
         <div>
             <span class="eyebrow">REPORTING</span>
             <h1><?= $type === 'sessions' ? 'Login / Logout Report' : 'Agent Activity Report' ?></h1>
-            <p class="muted">Filter by session login date and agent ID. Export either report to CSV.</p>
+            <p class="muted"><?= $type === 'activity' ? 'Daily activity totals for each date in the selected range.' : 'Filter by session login date and agent ID.' ?> Export either report to CSV.</p>
         </div>
     </div>
 
@@ -209,12 +254,13 @@ if (($_GET['export'] ?? '') === 'csv') {
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th>Agent ID</th><th>Name</th><th>Current assigned LOB</th><th>Sessions</th><th>Login</th><th>Idle</th><th>Break</th><th>Pause Breakdown</th></tr>
+                    <tr><th>Date</th><th>Agent ID</th><th>Name</th><th>Current assigned LOB</th><th>Sessions</th><th>Login</th><th>Idle</th><th>Break</th><th>Pause Breakdown</th></tr>
                 </thead>
                 <tbody>
-                <?php if (!$rows): ?><tr><td colspan="8" class="center empty-state muted">No agents found for these filters.</td></tr><?php endif; ?>
+                <?php if (!$rows): ?><tr><td colspan="9" class="center empty-state muted">No activity found for these dates and filters.</td></tr><?php endif; ?>
                 <?php foreach ($rows as $r): ?>
                     <tr>
+                        <td><?= e(date('d M Y', strtotime($r['report_date']))) ?></td>
                         <td><strong><?= e($r['agent_id']) ?></strong></td>
                         <td><?= e($r['full_name']) ?></td>
                         <td><?= e($r['lob'] ?? 'Unassigned') ?></td>
