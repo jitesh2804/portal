@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -95,37 +95,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-body network-login">
 <script src="/assets/ambient.js" defer></script>
-<header class="login-utility"><a class="brand-lockup" href="/login.php"><span class="brand-mark">O</span><span><strong class="brand-name">ORION</strong><span class="brand-sub">Workforce workspace</span></span></a><div class="utility-actions"><time id="workspaceClock" class="date-chip"></time><button type="button" class="btn secondary" id="motionToggle" aria-pressed="false">Pause motion</button></div></header>
+<header class="login-utility">
+    <a class="brand-lockup" href="/login.php">
+        <span class="brand-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 3a9 9 0 0 1 9 9"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </span>
+        <div>
+            <strong class="brand-name">ORION</strong>
+            <span class="brand-sub">Workforce Intelligence</span>
+        </div>
+    </a>
+    <div class="utility-actions">
+        <time id="workspaceClock" class="date-chip">--:--:-- IST</time>
+        <button type="button" class="btn secondary" id="motionToggle" aria-pressed="false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            Pause motion
+        </button>
+    </div>
+</header>
 <main class="login-shell">
     <section class="login-hero">
         <div class="login-copy">
-            <span class="portal-tag">ONE WORKSPACE. EVERY TEAM.</span>
-            <h1><span class="gradient-text">Connected teams.</span><br>Exceptional work.</h1>
-            <p>Your people, activity and insights together. A clearer view of every workday, from the first login to the final sign-off.</p>
+            <span class="portal-tag">ONE WORKSPACE &middot; EVERY TEAM</span>
+            <h1><span class="gradient-text">Connected teams.</span><br>Exceptional performance.</h1>
+            <p>Your people, realtime activity and operational insights together in one unified dashboard. A crystal-clear view of every workday.</p>
         </div>
-        <div class="signal-panel"><div class="signal-heading"><strong><i class="signal-dot"></i>Workforce activity, in focus</strong><span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div><div class="signal-metrics"><div><span>LIVE VISIBILITY</span><strong>2-second updates</strong></div><div><span>YOUR TEAMS</span><strong>3 business lines</strong></div><div><span>ACCESS CONTROL</span><strong>Role-based access</strong></div></div></div>
+        <div class="signal-panel">
+            <div class="signal-heading">
+                <strong><i class="signal-dot"></i>Live Workforce Status</strong>
+                <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="signal-metrics">
+                <div><span>LIVE VISIBILITY</span><strong>2s Auto-Pulse</strong></div>
+                <div><span>ACTIVE TEAMS</span><strong>3 Core LOBs</strong></div>
+                <div><span>SECURITY</span><strong>Enterprise RBAC</strong></div>
+            </div>
+        </div>
         <div class="feature-grid">
-            <article><span class="feature-icon" aria-hidden="true">&#9678;</span><div><h2>Realtime activity</h2><p>Availability, breaks and session status in one view.</p></div></article>
-            <article><span class="feature-icon" aria-hidden="true">&#9636;</span><div><h2>Reports that deliver</h2><p>Login history, activity summaries and CSV exports.</p></div></article>
-            <article><span class="feature-icon" aria-hidden="true">&#9783;</span><div><h2>Built around your teams</h2><p>Sales, Collection and Backend. Assigned by your admin or supervisor.</p></div></article>
-            <article><span class="feature-icon" aria-hidden="true">&#9672;</span><div><h2>The right access</h2><p>Dedicated workspaces for agents, supervisors and admins.</p></div></article>
+            <article>
+                <div class="feature-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div>
+                    <h2>Realtime Monitoring</h2>
+                    <p>Live agent availability, break times and session statuses updated instantly.</p>
+                </div>
+            </article>
+            <article>
+                <div class="feature-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="13" y="6" width="3" height="12"/><rect x="19" y="13" width="3" height="5"/></svg>
+                </div>
+                <div>
+                    <h2>Analytics &amp; Reports</h2>
+                    <p>In-depth activity logs, session histories and instant one-click CSV exports.</p>
+                </div>
+            </article>
+            <article>
+                <div class="feature-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                    <h2>Multi-LOB Routing</h2>
+                    <p>Dynamic assignments for Sales, Collection and Backend operations.</p>
+                </div>
+            </article>
+            <article>
+                <div class="feature-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                    <h2>Role-Based Console</h2>
+                    <p>Dedicated modern interfaces tailored for Agents, Supervisors and Admins.</p>
+                </div>
+            </article>
         </div>
     </section>
     <section class="login-card" aria-labelledby="signinHeading">
-        <div class="signin-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></svg></div>
-        <div class="login-card-head"><h2 id="signinHeading">Welcome back</h2><p class="muted">Sign in to your Orion workspace.</p></div>
-        <?php if ($error): ?><div class="alert danger" role="alert"><?= e($error) ?></div><?php endif; ?>
+        <div class="signin-emblem" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </div>
+        <div class="login-card-head">
+            <h2 id="signinHeading">Welcome back</h2>
+            <p class="muted">Sign in to access your Orion workspace</p>
+        </div>
+        <?php if ($error): ?>
+            <div class="alert danger" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <?= e($error) ?>
+            </div>
+        <?php endif; ?>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-            <div><label for="agent_id">User ID <span class="field-hint">YOUR WORK ACCOUNT</span></label><input id="agent_id" name="agent_id" placeholder="Enter your user ID" autocomplete="username" required autofocus></div>
-            <div><label for="password">Password</label><div class="password-field"><input id="password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required><button id="passwordToggle" type="button" aria-label="Show password" aria-pressed="false">Show</button></div></div>
-            <p class="assignment-note">Your assigned role and LOB take you to the right workspace automatically.</p>
-            <button class="btn primary full login-submit" type="submit">Sign in to workspace <span aria-hidden="true">&rarr;</span></button>
+            <div>
+                <label for="agent_id">
+                    <span>User ID</span>
+                    <span class="field-hint">WORK ACCOUNT</span>
+                </label>
+                <input id="agent_id" name="agent_id" placeholder="e.g. AGENT-101" autocomplete="username" required autofocus>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <div class="password-field">
+                    <input id="password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+                    <button id="passwordToggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
+                </div>
+            </div>
+            <p class="assignment-note">Your role &amp; assigned LOB will automatically route you to your workspace.</p>
+            <button class="btn primary full login-submit" type="submit">
+                <span>Sign in to workspace</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
         </form>
-        <div class="signin-footer"><span>Need access or a password reset?</span><strong>Contact your administrator.</strong></div>
-        <p class="login-footnote">&copy; <?= date('Y') ?> Orion IT Services Pvt. Ltd.</p>
+        <div class="signin-footer">
+            <span>Need assistance or password reset?</span>
+            <strong>Contact your IT Administrator</strong>
+        </div>
+        <p class="login-footnote">&copy; <?= date('Y') ?> Orion IT Services Pvt. Ltd. All rights reserved.</p>
     </section>
 </main>
-<footer class="login-bottom"><span>ORION / WORKFORCE INTELLIGENCE</span><span>Sales <b>&middot;</b> Collection <b>&middot;</b> Backend</span></footer>
+<footer class="login-bottom">
+    <span>ORION WORKFORCE MANAGEMENT &middot; ENTERPRISE SUITE</span>
+    <span>Sales <b>&middot;</b> Collection <b>&middot;</b> Backend</span>
+</footer>
 </body>
 </html>
