@@ -15,7 +15,7 @@
     };
     function render() {
         const query = search.value.trim().toLowerCase();
-        const scoped = rows.filter(row => !lob.value || (row.lob || 'unassigned') === lob.value);
+        const scoped = rows.filter(row => !lob.value || (row.lob || 'unassigned').split(',').map(value => value.trim()).includes(lob.value));
         const visible = scoped.filter(row => (!filter.value || row.activity_type === filter.value) &&
             (row.agent_id.toLowerCase().includes(query) || row.full_name.toLowerCase().includes(query)));
         const fragment = document.createDocumentFragment();

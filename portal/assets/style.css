@@ -211,6 +211,13 @@ tr:hover td { background: rgba(255,255,255,.018) }
 .form-button { display: flex; align-items: end; gap: 8px }
 .inline-form { display: flex; align-items: center; gap: 8px }
 .inline-form input { min-width: 150px }
+.lob-fieldset { min-width: 0; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.lob-fieldset legend { padding: 0 5px; color: #b6c4da; font-size: 13px; font-weight: 650; }
+.lob-choice-list, .lob-assignment-options { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lob-choice-list label, .lob-assignment-options label { display: inline-flex; align-items: center; gap: 5px; margin: 0; color: #b6c4da; font-size: 12px; white-space: nowrap; }
+.lob-choice-list input[type="checkbox"], .lob-assignment-options input[type="checkbox"] { width: 15px; min-width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #c2ee97; }
+.lob-assignment-form { display: grid; gap: 8px; }
+.lob-assignment-options { gap: 5px 9px; }
 .report-summary { margin-bottom: 22px }
 .session-status { color: #8de7c5; font-weight: 700 }
 .session-ended { color: #a5b1c7 }
@@ -315,8 +322,8 @@ tr:hover td { background: rgba(255,255,255,.018) }
 .empty-state strong { display: block; font-size: 15px; font-weight: 600; }
 .empty-state p { margin: 9px 0 0; font-size: 12px; }
 .agent-body .topbar { background: #101925ed; min-height: 88px; }
-.agent-clocks { display: flex; align-items: center; gap: 20px; }
-.agent-clock { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 100px; }
+.agent-clocks { display: flex; align-items: center; gap: 16px; }
+.agent-clock { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 88px; }
 .agent-clock > span { color: #a8bbb9; font-size: 9px; font-weight: 750; letter-spacing: .14em; }
 .agent-clock time { color: #eef5ff; font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .agent-clock small { color: #8daaa7; font-size: 10px; }
@@ -371,7 +378,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid #c2ee97; outline-offs
 }
 @media (max-width: 760px) {
     .agent-body .topbar { flex-wrap: wrap; gap: 8px 12px; padding: 10px 15px; }
-    .agent-clocks { order: 3; width: 100%; justify-content: center; gap: 28px; }
+    .agent-body .top-actions { flex-wrap: wrap; justify-content: flex-end; }
+    .agent-clocks { order: 3; width: 100%; justify-content: flex-end; gap: 18px; }
 }
 @media (max-width: 420px) {
     .agent-clock { min-width: 90px; }

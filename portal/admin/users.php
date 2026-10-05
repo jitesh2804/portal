@@ -21,10 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fullName = trim($_POST['full_name'] ?? '');
             $password = $_POST['password'] ?? '';
             $role = $_POST['role'] ?? 'agent';
-            $lob = $_POST['lob'] ?? '';
-            if (!in_array($lob, lobOptions(), true)) {
-                throw new RuntimeException('Choose Sales, Collection or Backend LOB.');
-            }
+            $lobs = normalizeLobSelection($_POST['lob'] ?? null);
             if (!in_array($role, ['agent', 'supervisor'], true)) {
                 throw new RuntimeException('Choose Agent or Supervisor.');
             }
@@ -42,22 +39,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':full_name' => $fullName,
                 ':password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 ':role' => $role,
-                ':lob' => $lob,
+                ':lob' => implode(', ', $lobs),
             ]);
             flash('success', ucfirst($role) . ' created successfully.');
         }
 
         if ($action === 'assign_lob') {
-            $lob = $_POST['lob'] ?? '';
-            if (!in_array($lob, lobOptions(), true)) {
-                throw new RuntimeException('Choose Sales, Collection or Backend LOB.');
-            }
+            $lobs = normalizeLobSelection($_POST['lob'] ?? null);
             $stmt = $pdo->prepare("UPDATE users SET lob = :lob WHERE id = :id AND role IN ('agent', 'supervisor')");
-            $stmt->execute([':lob' => $lob, ':id' => (int)($_POST['id'] ?? 0)]);
+            $stmt->execute([':lob' => implode(', ', $lobs), ':id' => (int)($_POST['id'] ?? 0)]);
             if ($stmt->rowCount() !== 1) {
                 throw new RuntimeException('User not found.');
             }
-            flash('success', 'LOB assigned. The new LOB applies on the next login.');
+            flash('success', 'LOB assignments saved. They apply on the next login.');
         }
 
         if ($action === 'toggle') {
@@ -139,28 +133,29 @@ $flash = pullFlash();
             <div><label>Full Name</label><input name="full_name" required></div>
             <div><label>Password</label><input type="password" name="password" minlength="6" required></div>
             <div><label for="userRole">Role</label><select name="role" id="userRole"><option value="agent">Agent</option><option value="supervisor">Supervisor</option></select></div>
-            <div><label for="newLob">Assigned LOB</label><select id="newLob" name="lob" required><option value="">Select LOB</option><?php foreach (lobOptions() as $lob): ?><option value="<?= e($lob) ?>"><?= e($lob) ?></option><?php endforeach; ?></select></div>
+            <fieldset class="lob-fieldset"><legend>Assigned LOBs</legend><div class="lob-choice-list"><?php foreach (lobOptions() as $lob): ?><label><input type="checkbox" name="lob[]" value="<?= e($lob) ?>"> <?= e($lob) ?></label><?php endforeach; ?></div></fieldset>
             <div class="form-button"><button class="btn primary full">Create User</button></div>
         </form>
     </section>
     <?php endif; ?>
 
     <section class="panel">
-        <div class="panel-head"><div><h2>Agents &amp; Supervisors</h2><p class="muted">Assign a LOB before the first login. Changes apply on the next login; existing sessions keep their original LOB.</p></div></div>
+        <div class="panel-head"><div><h2>Agents &amp; Supervisors</h2><p class="muted">Choose one or more LOBs for each account. Changes apply on the next login; existing sessions keep their original assignment.</p></div></div>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>User ID</th><th>Name</th><th>Assigned LOB</th><th>Role</th><th>Status</th><?php if ($isAdmin): ?><th>Created</th><th>Reset Password</th><th>Action</th><?php endif; ?></tr></thead>
+                <thead><tr><th>User ID</th><th>Name</th><th>Assigned LOBs</th><th>Role</th><th>Status</th><?php if ($isAdmin): ?><th>Created</th><th>Reset Password</th><th>Action</th><?php endif; ?></tr></thead>
                 <tbody>
                 <?php foreach ($agents as $a): ?>
+                    <?php $assignedLobs = parseAssignedLobs($a['lob']); ?>
                     <tr>
                         <td><strong><?= e($a['agent_id']) ?></strong></td>
                         <td><?= e($a['full_name']) ?></td>
-                        <td><form method="post" class="inline-form">
+                        <td><form method="post" class="lob-assignment-form">
                             <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
                             <input type="hidden" name="action" value="assign_lob">
                             <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
-                            <select name="lob" required aria-label="Assigned LOB for <?= e($a['agent_id']) ?>"><option value="">Unassigned</option><?php foreach (lobOptions() as $lob): ?><option value="<?= e($lob) ?>" <?= $a['lob'] === $lob ? 'selected' : '' ?>><?= e($lob) ?></option><?php endforeach; ?></select>
-                            <button class="btn secondary">Save LOB</button>
+                            <div class="lob-assignment-options" role="group" aria-label="Assigned LOBs for <?= e($a['agent_id']) ?>"><?php foreach (lobOptions() as $lob): ?><label><input type="checkbox" name="lob[]" value="<?= e($lob) ?>" <?= in_array($lob, $assignedLobs, true) ? 'checked' : '' ?>> <?= e($lob) ?></label><?php endforeach; ?></div>
+                            <button class="btn secondary">Save</button>
                         </form></td>
                         <td><span class="badge <?= $a['role'] === 'supervisor' ? 'warning' : 'success' ?>"><?= e(ucfirst($a['role'])) ?></span></td>
                         <td><span class="badge <?= $a['is_active'] ? 'success':'danger' ?>"><?= $a['is_active'] ? 'ACTIVE':'DISABLED' ?></span></td>

@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new RuntimeException('Invalid Agent ID or password.');
         }
 
-        if ($user['role'] !== 'admin' && !in_array($user['lob'], lobOptions(), true)) {
+        $assignedLobs = parseAssignedLobs($user['lob']);
+        if ($user['role'] !== 'admin' && $assignedLobs === []) {
             throw new RuntimeException('Your LOB is not assigned. Please contact your administrator or supervisor.');
         }
 

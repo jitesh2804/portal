@@ -40,6 +40,38 @@ function lobOptions(): array
     return ['Sales', 'Collection', 'Backend'];
 }
 
+function normalizeLobSelection(mixed $selection): array
+{
+    if (!is_array($selection) || $selection === []) {
+        throw new RuntimeException('Choose at least one LOB.');
+    }
+
+    foreach ($selection as $lob) {
+        if (!is_string($lob) || !in_array($lob, lobOptions(), true)) {
+            throw new RuntimeException('Choose Sales, Collection or Backend LOB.');
+        }
+    }
+
+    return array_values(array_filter(
+        lobOptions(),
+        static fn(string $lob): bool => in_array($lob, $selection, true)
+    ));
+}
+
+function parseAssignedLobs(?string $assignedLobs): array
+{
+    if ($assignedLobs === null || trim($assignedLobs) === '') {
+        return [];
+    }
+
+    $selection = array_map('trim', explode(',', $assignedLobs));
+    if (count(array_unique($selection)) !== count($selection)) {
+        throw new RuntimeException('Stored LOB assignment is invalid.');
+    }
+
+    return normalizeLobSelection($selection);
+}
+
 function requireLogin(): void
 {
     if (!isLoggedIn()) {

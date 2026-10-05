@@ -61,24 +61,24 @@ $session = $sessionStmt->fetch();
         <div><div class="brand-name">Activity Portal</div>
         <div class="brand-sub">Your daily workspace</div></div>
     </div>
-    <div class="agent-clocks" aria-label="Current time in New York and India">
-        <div class="agent-clock">
-            <span>NEW YORK</span>
-            <time id="newYorkClock">--:--:--</time>
-            <small id="newYorkDate"></small>
-        </div>
-        <div class="agent-clock">
-            <span>INDIA</span>
-            <time id="indiaClock">--:--:--</time>
-            <small id="indiaDate"></small>
-        </div>
-    </div>
     <div class="top-actions">
         <div class="user-chip">
             <strong><?= e($user['full_name']) ?></strong>
             <span><?= e($user['agent_id']) ?> &middot; <?= e($user['lob'] ?? 'Unassigned LOB') ?></span>
         </div>
         <a class="btn danger ghost" href="/logout.php">Logout</a>
+        <div class="agent-clocks" aria-label="Current time in New York and India">
+            <div class="agent-clock">
+                <span>NEW YORK</span>
+                <time id="newYorkClock">--:--:--</time>
+                <small id="newYorkDate"></small>
+            </div>
+            <div class="agent-clock">
+                <span>INDIA</span>
+                <time id="indiaClock">--:--:--</time>
+                <small id="indiaDate"></small>
+            </div>
+        </div>
     </div>
 </header>
 

@@ -8,7 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(20) NOT NULL DEFAULT 'agent'
         CHECK (role IN ('admin','agent','supervisor')),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    lob VARCHAR(20) NULL CHECK (lob IN ('Sales', 'Collection', 'Backend')),
+    lob VARCHAR(100) NULL CHECK (lob IS NULL OR lob IN (
+        'Sales', 'Collection', 'Backend',
+        'Sales, Collection', 'Sales, Backend', 'Collection, Backend',
+        'Sales, Collection, Backend'
+    )),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -26,7 +30,11 @@ CREATE TABLE IF NOT EXISTS agent_sessions (
     logout_at TIMESTAMPTZ NULL,
     last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     login_ip INET NULL,
-    lob VARCHAR(20) NULL CHECK (lob IN ('Sales', 'Collection', 'Backend')),
+    lob VARCHAR(100) NULL CHECK (lob IS NULL OR lob IN (
+        'Sales', 'Collection', 'Backend',
+        'Sales, Collection', 'Sales, Backend', 'Collection, Backend',
+        'Sales, Collection, Backend'
+    )),
     user_agent TEXT NULL
 );
 
