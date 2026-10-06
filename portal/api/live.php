@@ -10,7 +10,10 @@ if (!isLoggedIn() || !in_array($_SESSION['role'] ?? '', ['admin', 'supervisor'],
 }
 session_write_close();
 try {
-    $rows = db()->query("
+    $timeoutSeconds = (int)AGENT_SESSION_TIMEOUT;
+    $pdo = db();
+    expireExpiredAgentSessions($pdo);
+    $stmt = $pdo->prepare("
         SELECT s.id, u.agent_id, u.full_name, s.lob, s.login_at, s.last_seen,
                COALESCE(al.activity_type, 'IDLE') AS activity_type, pc.code_name,
                COALESCE(al.start_time, s.login_at) AS start_time,
@@ -23,10 +26,13 @@ try {
                WHERE session_id = s.id AND end_time IS NULL ORDER BY id DESC LIMIT 1
           ) al ON TRUE
           LEFT JOIN pause_codes pc ON pc.id = al.pause_code_id
-         WHERE s.logout_at IS NULL AND s.last_seen >= NOW() - INTERVAL '90 seconds'
+         WHERE s.logout_at IS NULL
+           AND s.login_at >= NOW() - ({$timeoutSeconds} * INTERVAL '1 second')
            AND u.role = 'agent'
          ORDER BY u.agent_id, s.id
-    ")->fetchAll();
+    ");
+    $stmt->execute();
+    $rows = $stmt->fetchAll();
     foreach ($rows as &$row) {
         foreach (['login_at', 'last_seen', 'start_time'] as $field) {
             $row[$field] = date('d M Y H:i:s', strtotime($row[$field]));

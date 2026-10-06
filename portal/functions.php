@@ -142,6 +142,33 @@ function closeOpenActivity(PDO $pdo, int $userId, int $sessionId): void
     ]);
 }
 
+function expireExpiredAgentSessions(PDO $pdo): int
+{
+    $timeoutSeconds = (int)AGENT_SESSION_TIMEOUT;
+    $stmt = $pdo->query("
+        WITH expired_sessions AS (
+            UPDATE agent_sessions
+               SET logout_at = login_at + ({$timeoutSeconds} * INTERVAL '1 second'),
+                   last_seen = login_at + ({$timeoutSeconds} * INTERVAL '1 second')
+             WHERE logout_at IS NULL
+               AND login_at <= NOW() - ({$timeoutSeconds} * INTERVAL '1 second')
+            RETURNING id, user_id, logout_at
+        ),
+        closed_activity AS (
+            UPDATE activity_log al
+               SET end_time = expired_sessions.logout_at
+              FROM expired_sessions
+             WHERE al.session_id = expired_sessions.id
+               AND al.user_id = expired_sessions.user_id
+               AND al.end_time IS NULL
+            RETURNING al.id
+        )
+        SELECT COUNT(*) FROM expired_sessions
+    ");
+
+    return (int)$stmt->fetchColumn();
+}
+
 function startActivity(PDO $pdo, int $userId, int $sessionId, string $status, ?int $pauseCodeId = null): void
 {
     closeOpenActivity($pdo, $userId, $sessionId);

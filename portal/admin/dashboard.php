@@ -5,19 +5,27 @@ require_once __DIR__ . '/../functions.php';
 requireRole('admin');
 
 $pdo = db();
+expireExpiredAgentSessions($pdo);
 
-$stats = $pdo->query("
+$timeoutSeconds = (int)AGENT_SESSION_TIMEOUT;
+$statsStmt = $pdo->prepare("
+    WITH session_window AS (
+        SELECT NOW() - ({$timeoutSeconds} * INTERVAL '1 second') AS cutoff
+    )
     SELECT
         (SELECT COUNT(*) FROM users WHERE role='agent' AND is_active=TRUE) AS total_agents,
-        (SELECT COUNT(*) FROM agent_sessions WHERE logout_at IS NULL AND last_seen >= NOW() - INTERVAL '90 seconds') AS online_agents,
+        (SELECT COUNT(*) FROM agent_sessions
+          WHERE logout_at IS NULL AND login_at >= (SELECT cutoff FROM session_window)) AS online_agents,
         (SELECT COUNT(*) FROM activity_log al
           JOIN agent_sessions s ON s.id=al.session_id
          WHERE al.activity_type='PAUSE'
            AND al.end_time IS NULL
            AND s.logout_at IS NULL
-           AND s.last_seen >= NOW() - INTERVAL '90 seconds') AS on_break,
+           AND s.login_at >= (SELECT cutoff FROM session_window)) AS on_break,
         (SELECT COUNT(*) FROM pause_codes WHERE is_active=TRUE) AS pause_codes
-")->fetch();
+");
+$statsStmt->execute();
+$stats = $statsStmt->fetch();
 
 ?>
 <!doctype html>
@@ -42,11 +50,11 @@ $stats = $pdo->query("
 
     <section class="overview-banner">
         <div><span class="eyebrow">YOUR TEAM, AT A GLANCE</span><h2>Great work starts<br>with a connected team.</h2><p>Keep an eye on availability. Keep the day moving.</p><a class="btn primary" href="/admin/users.php">Manage your team <span aria-hidden="true">&rarr;</span></a></div>
-        <div class="team-orbit"><div class="orbit-core"><strong data-live-count="online"><?= (int)$stats['online_agents'] ?></strong><span>online now</span></div><span class="orbit-label"><i></i> Team activity</span></div>
+        <div class="team-orbit"><div class="orbit-core"><strong data-live-count="online"><?= (int)$stats['online_agents'] ?></strong><span>active logins</span></div><span class="orbit-label"><i></i> Team activity</span></div>
     </section>
     <section class="cards four">
         <div class="stat-card"><span>Active Agents <b class="metric-icon" aria-hidden="true">&#9823;</b></span><strong><?= (int)$stats['total_agents'] ?></strong><small>Enabled team members</small></div>
-        <div class="stat-card tone-green"><span>Online Now <b class="metric-icon" aria-hidden="true">&#9673;</b></span><strong data-live-count="online"><?= (int)$stats['online_agents'] ?></strong><small>Connected sessions</small></div>
+        <div class="stat-card tone-green"><span>Active Logins <b class="metric-icon" aria-hidden="true">&#9673;</b></span><strong data-live-count="online"><?= (int)$stats['online_agents'] ?></strong><small>Signed in within the 9-hour session window</small></div>
         <div class="stat-card tone-amber"><span>On Break <b class="metric-icon" aria-hidden="true">&#9208;</b></span><strong data-live-count="pause"><?= (int)$stats['on_break'] ?></strong><small>Taking a moment to recharge</small></div>
         <div class="stat-card"><span>Active Pause Codes <b class="metric-icon" aria-hidden="true">&#9783;</b></span><strong><?= (int)$stats['pause_codes'] ?></strong><small>Available break categories</small></div>
     </section>

@@ -11,12 +11,13 @@
 - Break duration
 - Pause code wise tracking
 - Live admin dashboard
-- Realtime Activity panel with 2-second updates, agent search and activity filters
+- Realtime Activity panel with 2-second updates, agent search and activity filters; active sessions remain listed for the 9-hour session window even when heartbeats are delayed
 - Login / Logout report with session timestamps, last seen, status, IP and CSV export
 - Date range + Agent ID report
 - CSV export
 - Heartbeat / last_seen tracking
 - Agent sessions automatically expire after 9 hours; dashboard heartbeats keep active agent sessions connected while the agent is idle.
+- Expired sessions get their `logout_at` and open activity end time recorded on the next realtime/dashboard refresh, even if the agent browser has already stopped sending heartbeats.
 - CSRF protection
 - Passwords stored securely with PHP password_hash()
 
