@@ -28,6 +28,7 @@ try {
     $userId = (int)$_SESSION['user_id'];
     $sessionId = (int)$_SESSION['activity_session_id'];
     $pdo = db();
+    $timeoutInterval = '(' . (int)AGENT_SESSION_TIMEOUT . " * INTERVAL '1 second')";
 
     $pdo->beginTransaction();
 
@@ -37,14 +38,41 @@ try {
          WHERE id = :id
            AND user_id = :user_id
            AND logout_at IS NULL
+           AND login_at > NOW() - {$timeoutInterval}
+    RETURNING id
     ");
-    $touch->execute([
-        ':id' => $sessionId,
-        ':user_id' => $userId,
-    ]);
+    $touch->execute([':id' => $sessionId, ':user_id' => $userId]);
 
-    if ($touch->rowCount() !== 1) {
-        $pdo->rollBack();
+    if (!$touch->fetchColumn()) {
+        $expire = $pdo->prepare("
+            UPDATE agent_sessions
+               SET logout_at = login_at + {$timeoutInterval},
+                   last_seen = login_at + {$timeoutInterval}
+             WHERE id = :id
+               AND user_id = :user_id
+               AND logout_at IS NULL
+               AND login_at <= NOW() - {$timeoutInterval}
+            RETURNING logout_at
+        ");
+        $expire->execute([':id' => $sessionId, ':user_id' => $userId]);
+        $expiredAt = $expire->fetchColumn();
+        if ($expiredAt !== false) {
+            $closeActivity = $pdo->prepare("
+                UPDATE activity_log
+                   SET end_time = :expired_at
+                 WHERE user_id = :user_id
+                   AND session_id = :session_id
+                   AND end_time IS NULL
+            ");
+            $closeActivity->execute([
+                ':expired_at' => $expiredAt,
+                ':user_id' => $userId,
+                ':session_id' => $sessionId,
+            ]);
+            $pdo->commit();
+        } else {
+            $pdo->rollBack();
+        }
         $_SESSION = [];
         session_destroy();
         http_response_code(401);

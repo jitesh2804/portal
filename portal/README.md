@@ -16,6 +16,7 @@
 - Date range + Agent ID report
 - CSV export
 - Heartbeat / last_seen tracking
+- Agent sessions automatically expire after 9 hours; dashboard heartbeats keep active agent sessions connected while the agent is idle.
 - CSRF protection
 - Passwords stored securely with PHP password_hash()
 

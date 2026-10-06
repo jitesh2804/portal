@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+const AGENT_SESSION_TIMEOUT = 9 * 60 * 60;
+
+ini_set('session.gc_maxlifetime', (string)AGENT_SESSION_TIMEOUT);
 session_start();
 
 const DB_HOST = '192.168.158.121';
@@ -10,8 +13,6 @@ const DB_USER = 'postgres';
 const DB_PASS = 'Sum#321';
 
 const APP_NAME = 'Orion IT Services Pvt. Ltd.';
-const IDLE_SESSION_TIMEOUT = 300; // seconds without heartbeat before session is considered stale
-
 date_default_timezone_set('Asia/Kolkata');
 
 function db(): PDO
