@@ -15,6 +15,7 @@
         <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
         <a class="<?= $page === 'dashboard.php' ? 'active' : '' ?>" href="/admin/dashboard.php"><span class="nav-icon" aria-hidden="true">&#9638;</span>Overview</a>
         <a class="<?= $page === 'users.php' ? 'active' : '' ?>" href="/admin/users.php"><span class="nav-icon" aria-hidden="true">&#9823;</span>User Management</a>
+        <a class="<?= $page === 'leaves.php' ? 'active' : '' ?>" href="/admin/leaves.php"><span class="nav-icon" aria-hidden="true">&#9636;</span>Agent Leaves</a>
         <a class="<?= $page === 'pause_codes.php' ? 'active' : '' ?>" href="/admin/pause_codes.php"><span class="nav-icon" aria-hidden="true">&#9208;</span>Pause Codes</a>
         <?php else: ?>
         <a class="<?= $page === 'users.php' ? 'active' : '' ?>" href="/admin/users.php"><span class="nav-icon" aria-hidden="true">&#9823;</span>LOB Assignments</a>

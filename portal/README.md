@@ -15,6 +15,7 @@
 - Login / Logout report with session timestamps, last seen, status, IP and CSV export
 - Date range + Agent ID report
 - CSV export
+- Admin CSV/TSV upload for agent annual leave entitlement and monthly usage; agents can view their own total, used and pending leave
 - Heartbeat / last_seen tracking
 - Agent sessions automatically expire after 9 hours; dashboard heartbeats keep active agent sessions connected while the agent is idle.
 - Expired sessions get their `logout_at` and open activity end time recorded on the next realtime/dashboard refresh, even if the agent browser has already stopped sending heartbeats.
@@ -90,3 +91,10 @@ Assigned LOBs are stored in canonical order and captured together at login, neve
 
 ## Remote agent logout
 Admins and supervisors can use **Realtime Activity ? Logout user** (also available on the admin overview). Confirming closes only that selected agent session and its open activity. Agent heartbeats check every 2 seconds and redirect to login when the session has ended; background browser throttling or lost connectivity may delay the visible redirect. Closed sessions cannot resume activity. Logout time is included in the existing Login / Logout report. No additional database migration is needed for this feature.
+
+## Agent leave balances
+Fresh installs create the leave-balance table automatically. Existing databases must run `migrations/004_agent_leave_balances.sql` before deploying the leave pages.
+
+Admins can open **Agent Leaves**, download the CSV template, add each agent's annual **Total Entitlement**, and fill the monthly leave used plus Grand Total. Upload a CSV or tab-separated TSV for the selected leave year. Required columns are `EMP ID`, Jan through Dec, `Grand Total`, and `Total Entitlement`; `Name`, `Status`, `Process`, `DOJ`, and `Tenure` are also accepted as optional metadata columns. The Grand Total must match the sum of the monthly values. EMP ID must match an agent account ID; an `OIT` prefix is supported for numeric IDs. Uploading the same agent/year again updates that balance.
+
+Agents can choose **My Leave Balance** from their dashboard to see their own total entitlement, leave used, pending balance, any overuse, and the monthly breakdown. Agents cannot view other users' leave records.

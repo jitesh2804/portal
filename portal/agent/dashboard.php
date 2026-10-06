@@ -83,7 +83,7 @@ $session = $sessionStmt->fetch();
 </header>
 
 <main class="page">
-    <div class="page-head"><div><span class="eyebrow">MAKE TODAY COUNT</span><h1>Welcome back, <?= e($user['full_name']) ?><span class="title-dot">.</span></h1><p class="muted">A little focus. A well-earned break. A great workday.</p></div><span class="date-chip"><?= e(date('D, d M Y')) ?></span></div>
+    <div class="page-head"><div><span class="eyebrow">MAKE TODAY COUNT</span><h1>Welcome back, <?= e($user['full_name']) ?><span class="title-dot">.</span></h1><p class="muted">A little focus. A well-earned break. A great workday.</p></div><div class="agent-page-actions"><a class="btn secondary" href="/agent/leaves.php">My Leave Balance</a><span class="date-chip"><?= e(date('D, d M Y')) ?></span></div></div>
     <section class="hero-card">
         <div>
             <span class="eyebrow">CURRENT STATUS</span>

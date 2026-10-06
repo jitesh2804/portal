@@ -6,7 +6,7 @@ const AGENT_SESSION_TIMEOUT = 9 * 60 * 60;
 ini_set('session.gc_maxlifetime', (string)AGENT_SESSION_TIMEOUT);
 session_start();
 
-const DB_HOST = '192.168.158.121';
+const DB_HOST = '192.168.128.151';
 const DB_PORT = '5432';
 const DB_NAME = 'mydb';
 const DB_USER = 'postgres';
