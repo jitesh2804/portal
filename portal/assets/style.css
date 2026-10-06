@@ -229,12 +229,21 @@ tr:hover td { background: rgba(255,255,255,.018) }
 .leave-upload-form input[type="file"] { min-height: 43px; }
 .leave-format-note { margin: 15px 0 0; line-height: 1.7; }
 .leave-table { min-width: 1500px; }
+.leave-allotment-form input { width: 120px; min-width: 120px; padding: 9px; }
+.leave-allotment-form .btn { padding: 9px 11px; }
 .leave-empty { padding: 45px 28px; text-align: center; }
 .leave-empty h2 { margin-bottom: 8px; }
 .leave-empty p { margin: 0; }
 .leave-summary .stat-card strong { font-variant-numeric: tabular-nums; }
 .agent-leave-table { min-width: 420px; }
+.leave-dashboard-table { min-width: 1450px; }
+.leave-dashboard-table th, .leave-dashboard-table td { white-space: nowrap; text-align: center; }
+.leave-dashboard-table td { font-variant-numeric: tabular-nums; }
 .agent-leave-table td:last-child, .agent-leave-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.leave-employee-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
+.leave-employee-details > div { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px; border: 1px solid #273345; border-radius: 12px; background: #0d1623; }
+.leave-employee-details span { color: var(--muted); font-size: 11px; }
+.leave-employee-details strong { font-size: 13px; }
 .leave-total-row th { color: #c2ee97; background: #192434; }
 .leave-overused { margin-bottom: 0; }
 .leave-updated { margin: 14px 0 0; }
@@ -383,6 +392,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid #c2ee97; outline-offs
     .agent-page-actions, .leave-year-filter { flex-wrap: wrap; }
     .leave-upload-form { grid-template-columns: 1fr; }
     .leave-year-filter { align-items: end; }
+    .leave-employee-details { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
     .overview-banner { align-items: flex-start; }
